@@ -22,5 +22,8 @@
 		"minecraft": "~${minecraft_version}",
 		"java": ">=21",
 		"fabric-api": ">=${fabric_version}"
-	}
+	},
+	"mixins": [
+		"spinbot.mixins.json"
+	]
 }

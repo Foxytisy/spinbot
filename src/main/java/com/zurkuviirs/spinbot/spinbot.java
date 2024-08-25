@@ -4,9 +4,6 @@ package com.zurkuviirs.spinbot;
 
 
 import com.mojang.brigadier.arguments.FloatArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -25,8 +22,17 @@ public class spinbot implements ClientModInitializer {
     public float spinAmount = 0;
     public float spinAngle = 0;;
     public float currentYaw;
+    //public float spinAngle = 0;
 
-    public void onInitializeClient(){
+    private static spinbot instance;
+
+    public static spinbot getInstance() {
+        return instance;
+    }
+
+    public void onInitializeClient() {
+        instance = this;
+
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spin")
                 .then(ClientCommandManager.argument("Speed", FloatArgumentType.floatArg()).executes(context -> {
                     spinEnable = true;
