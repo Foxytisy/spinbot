@@ -36,7 +36,7 @@ public abstract class SpinbotMixin {
                     if (spinAngle < 0){
                         if ((currentYaw + spinAngle < p.getYaw())) {
                             p.setYaw(p.getYaw() - increment);
-                            p.sendMessage(Text.literal(String.valueOf(currentYaw)));
+                            //p.sendMessage(Text.literal(String.valueOf(currentYaw)));
 
                         } else {
                             spinbot.getInstance().angleSpinEnable = false;
@@ -44,7 +44,7 @@ public abstract class SpinbotMixin {
                     } else {
                         if ((currentYaw + spinAngle > p.getYaw())) {
                             p.setYaw(p.getYaw() + increment);
-                            p.sendMessage(Text.literal(String.valueOf(currentYaw)));
+                            //p.sendMessage(Text.literal(String.valueOf(currentYaw)));
 
                         } else {
                             spinbot.getInstance().angleSpinEnable = false;
