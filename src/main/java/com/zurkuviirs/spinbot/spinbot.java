@@ -19,6 +19,8 @@ public class spinbot implements ClientModInitializer {
 
     public boolean spinEnable = false;
     public boolean angleSpinEnable = false;
+    public boolean oscSpinEnable = false;
+    public boolean spinBack = false;
     public float spinAmount = 0;
     public float spinAngle = 0;
     public float currentYaw;
@@ -41,8 +43,7 @@ public class spinbot implements ClientModInitializer {
                         //System.out.println(player.getYaw());
 
             return 1;
-        })))))
-        ;
+        })))));
 
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spinangle")
                 .then(ClientCommandManager.argument("Angle (Degrees)", FloatArgumentType.floatArg())
@@ -53,12 +54,23 @@ public class spinbot implements ClientModInitializer {
                     currentYaw = context.getSource().getPlayer().getYaw();
 
                     return 1;
-                }))))))
-        ;
+                }))))));
+
+        ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spinpong")
+                .then(ClientCommandManager.argument("Angle (Symetric Degrees)", FloatArgumentType.floatArg())
+                        .then(ClientCommandManager.argument("Speed", FloatArgumentType.floatArg()).executes(context -> {
+                            oscSpinEnable = true;
+                            spinAmount = FloatArgumentType.getFloat(context, "Speed") / 20.0f;
+                            spinAngle = Math.abs(FloatArgumentType.getFloat(context, "Angle (Symetric Degrees)"));
+                            currentYaw = context.getSource().getPlayer().getYaw();
+
+                            return 1;
+                        }))))));
 
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, dedicated) -> dispatcher.register(literal("spinstop").executes(context -> {
             spinEnable = false;
             angleSpinEnable = false;
+            oscSpinEnable = false;
             return 1;
         }))));
 
@@ -69,6 +81,24 @@ public class spinbot implements ClientModInitializer {
         //        client.player.setYaw(client.player.getYaw() + increment);
         //    }
         //});
+
+        //For dev currently, will add mixin stuff later
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (oscSpinEnable && client.player != null) {
+                float increment = spinAmount / 20.0f;
+
+                if ((currentYaw + spinAngle) > client.player.getYaw() && !spinBack){
+                    client.player.setYaw(client.player.getYaw() + increment);
+                } else {
+                    spinBack = true;
+                    client.player.setYaw(client.player.getYaw() - increment);
+                }
+                if (spinBack && (currentYaw - spinAngle) > client.player.getYaw()) {
+                    spinBack = false;
+                }
+                client.player.sendMessage(Text.literal(String.valueOf(client.player.getYaw())));
+            }
+        });
 
         //ClientTickEvents.END_CLIENT_TICK.register(client -> {
         //    if (angleSpinEnable && client.player != null) {
