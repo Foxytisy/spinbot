@@ -3,6 +3,7 @@ package com.zurkuviirs.spinbot.mixin.client;
 import com.zurkuviirs.spinbot.spinbot;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,7 +33,7 @@ public abstract class SpinbotMixin {
                 if(spinbot.getInstance().angleSpinEnable){
                     var spinAngle = spinbot.getInstance().spinAngle;
                     var currentYaw = spinbot.getInstance().currentYaw;
-                    
+
                     if (spinAngle < 0){
                         if ((currentYaw + spinAngle < p.getYaw())) {
                             p.setYaw(p.getYaw() - increment);
@@ -40,6 +41,9 @@ public abstract class SpinbotMixin {
 
                         } else {
                             spinbot.getInstance().angleSpinEnable = false;
+                            if(spinbot.getInstance().soundEnable) {
+                                player.playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, 0.8f);
+                            }
                         }
                     } else {
                         if ((currentYaw + spinAngle > p.getYaw())) {
@@ -48,6 +52,9 @@ public abstract class SpinbotMixin {
 
                         } else {
                             spinbot.getInstance().angleSpinEnable = false;
+                            if(spinbot.getInstance().soundEnable) {
+                                player.playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, 0.8f);
+                            }
                         }
                     }
                 }

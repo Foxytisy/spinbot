@@ -3,20 +3,33 @@
 package com.zurkuviirs.spinbot;
 
 
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.sun.jdi.BooleanType;
+import com.sun.jdi.connect.Connector;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.command.CommandSource;
 import net.minecraft.entity.player.*;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.Registry;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
+import static net.fabricmc.fabric.impl.attachment.AttachmentRegistryImpl.get;
 
 public class spinbot implements ClientModInitializer {
 
+    public boolean soundEnable = false;
     public boolean spinEnable = false;
     public boolean angleSpinEnable = false;
     public boolean oscSpinEnable = false;
@@ -24,6 +37,8 @@ public class spinbot implements ClientModInitializer {
     public float spinAmount = 0;
     public float spinAngle = 0;
     public float currentYaw;
+    public Identifier soundId = Identifier.of("minecraft:block.note_block.hat");
+
     private static spinbot instance;
 
     public static spinbot getInstance() {
@@ -45,6 +60,16 @@ public class spinbot implements ClientModInitializer {
             return 1;
         })))));
 
+        ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spinsound")
+                .then(ClientCommandManager.argument("Enable / Disable", StringArgumentType.word()).suggests((context, builder) -> {
+                    // Suggest true and false options
+                    return CommandSource.suggestMatching(new String[] {"true", "false"}, builder);
+                }).executes(context -> {
+                    soundEnable = Boolean.parseBoolean(StringArgumentType.getString(context, "Enable / Disable"));
+
+                    return 1;
+                })))));
+
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spinangle")
                 .then(ClientCommandManager.argument("Angle (Degrees)", FloatArgumentType.floatArg())
                         .then(ClientCommandManager.argument("Speed (Positive Float)", FloatArgumentType.floatArg()).executes(context -> {
@@ -52,7 +77,9 @@ public class spinbot implements ClientModInitializer {
                     spinAmount = FloatArgumentType.getFloat(context, "Speed (Positive Float)") / 20.0f;
                     spinAngle = FloatArgumentType.getFloat(context, "Angle (Degrees)");
                     currentYaw = context.getSource().getPlayer().getYaw();
-
+                    if (soundEnable) {
+                        context.getSource().getPlayer().playSound(SoundEvent.of(soundId), 1f, 1f);
+                    }
                     return 1;
                 }))))));
 
@@ -82,7 +109,7 @@ public class spinbot implements ClientModInitializer {
         //    }
         //});
 
-        //For dev currently, will add mixin stuff later
+        //For dev currently, will change to mixin stuff later
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (oscSpinEnable && client.player != null) {
                 float increment = spinAmount / 20.0f;
@@ -96,6 +123,13 @@ public class spinbot implements ClientModInitializer {
                 if (spinBack && (currentYaw - spinAngle) > client.player.getYaw()) {
                     spinBack = false;
                 }
+
+                //client.player.playSound(SoundEvent.of(soundId), 1f, 1f);
+
+                //client.player.playSound(SoundEvent.of(soundId), 1f, 0.8f);
+
+
+                //REMOVE FOR RELEASE
                 client.player.sendMessage(Text.literal(String.valueOf(client.player.getYaw())));
             }
         });
