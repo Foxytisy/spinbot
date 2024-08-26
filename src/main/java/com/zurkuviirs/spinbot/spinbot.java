@@ -34,6 +34,7 @@ public class spinbot implements ClientModInitializer {
     public boolean angleSpinEnable = false;
     public boolean oscSpinEnable = false;
     public boolean spinBack = false;
+    public boolean oscSwitch = false;
     public float spinAmount = 0;
     public float spinAngle = 0;
     public float currentYaw;
@@ -110,19 +111,27 @@ public class spinbot implements ClientModInitializer {
         //});
 
         //For dev currently, will change to mixin stuff later
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (oscSpinEnable && client.player != null) {
-                float increment = spinAmount / 20.0f;
+        //ClientTickEvents.END_CLIENT_TICK.register(client -> {
+        //    if (oscSpinEnable && client.player != null) {
+        //        float increment = spinAmount / 20.0f;
 
-                if ((currentYaw + spinAngle) > client.player.getYaw() && !spinBack){
-                    client.player.setYaw(client.player.getYaw() + increment);
-                } else {
-                    spinBack = true;
-                    client.player.setYaw(client.player.getYaw() - increment);
-                }
-                if (spinBack && (currentYaw - spinAngle) > client.player.getYaw()) {
-                    spinBack = false;
-                }
+                //if ((currentYaw + spinAngle) > client.player.getYaw() && !spinBack){
+                //    client.player.setYaw(client.player.getYaw() + increment);
+                //} else {
+                //    spinBack = true;
+                //    client.player.setYaw(client.player.getYaw() - increment);
+                //}
+                //if (spinBack && (currentYaw - spinAngle) > client.player.getYaw()) {
+                //    spinBack = false;
+                //}
+
+               //if (spinBack && !oscSwitch) {
+               //    client.player.playSound(SoundEvent.of(soundId), 1f, 1f);
+               //    oscSwitch = true;
+               //} else if (!spinBack && oscSwitch) {
+               //    client.player.playSound(SoundEvent.of(soundId), 1f, .8f);
+               //    oscSwitch = false;
+               //}
 
                 //client.player.playSound(SoundEvent.of(soundId), 1f, 1f);
 
@@ -130,9 +139,9 @@ public class spinbot implements ClientModInitializer {
 
 
                 //REMOVE FOR RELEASE
-                client.player.sendMessage(Text.literal(String.valueOf(client.player.getYaw())));
-            }
-        });
+                //client.player.sendMessage(Text.literal(String.valueOf(client.player.getYaw())));
+            //}
+        //});
 
         //ClientTickEvents.END_CLIENT_TICK.register(client -> {
         //    if (angleSpinEnable && client.player != null) {

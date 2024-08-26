@@ -58,6 +58,30 @@ public abstract class SpinbotMixin {
                         }
                     }
                 }
+                if(spinbot.getInstance().oscSpinEnable){
+                    var spinAngle = spinbot.getInstance().spinAngle;
+                    var currentYaw = spinbot.getInstance().currentYaw;
+                    //var spinBack = spinbot.getInstance().spinBack;
+
+                    if ((currentYaw + spinAngle) > player.getYaw() && !spinbot.getInstance().spinBack){
+                        player.setYaw(player.getYaw() + increment);
+                    } else {
+                        spinbot.getInstance().spinBack = true;
+                        player.setYaw(player.getYaw() - increment);
+                    }
+                    if (spinbot.getInstance().spinBack && (currentYaw - spinAngle) > player.getYaw()) {
+                        spinbot.getInstance().spinBack = false;
+                    }
+                    if (spinbot.getInstance().soundEnable) {
+                        if (spinbot.getInstance().spinBack && !spinbot.getInstance().oscSwitch) {
+                            player.playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, 1f);
+                            spinbot.getInstance().oscSwitch = true;
+                        } else if (!spinbot.getInstance().spinBack && spinbot.getInstance().oscSwitch) {
+                            player.playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, .8f);
+                            spinbot.getInstance().oscSwitch = false;
+                        }
+                    }
+                }
             }
         lastTime = System.currentTimeMillis();
     }
