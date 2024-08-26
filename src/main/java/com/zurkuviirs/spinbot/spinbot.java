@@ -3,33 +3,31 @@
 package com.zurkuviirs.spinbot;
 
 
-import com.mojang.brigadier.arguments.ArgumentType;
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.sun.jdi.BooleanType;
-import com.sun.jdi.connect.Connector;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.CommandSource;
-import net.minecraft.entity.player.*;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.registry.Registry;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
-import static net.fabricmc.fabric.impl.attachment.AttachmentRegistryImpl.get;
 
 public class spinbot implements ClientModInitializer {
 
-    public boolean soundEnable = false;
+    public boolean soundEnable;
     public boolean spinEnable = false;
     public boolean angleSpinEnable = false;
     public boolean oscSpinEnable = false;
@@ -39,8 +37,9 @@ public class spinbot implements ClientModInitializer {
     public float spinAngle = 0;
     public float currentYaw;
     public Identifier soundId = Identifier.of("minecraft:block.note_block.hat");
-
     private static spinbot instance;
+    private static final String CONFIG_FILE_NAME = "config.json";
+    private Path configPath;
 
     public static spinbot getInstance() {
         return instance;
@@ -48,6 +47,14 @@ public class spinbot implements ClientModInitializer {
 
     public void onInitializeClient() {
         instance = this;
+
+        instance = this;
+
+        configPath = FabricLoader.getInstance().getConfigDir().resolve("config.json");
+
+        System.out.println("Config path: " + configPath.toString());
+
+        loadConfig();
 
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spin")
                 .then(ClientCommandManager.argument("Speed", FloatArgumentType.floatArg()).executes(context -> {
@@ -67,7 +74,7 @@ public class spinbot implements ClientModInitializer {
                     return CommandSource.suggestMatching(new String[] {"true", "false"}, builder);
                 }).executes(context -> {
                     soundEnable = Boolean.parseBoolean(StringArgumentType.getString(context, "Enable / Disable"));
-
+                    saveConfig();
                     return 1;
                 })))));
 
@@ -165,6 +172,47 @@ public class spinbot implements ClientModInitializer {
         //        }
         //    }
         //});
+    }
+
+    private void loadConfig() {
+        Gson gson = new Gson();
+
+        if (Files.exists(configPath)) {
+            try (FileReader reader = new FileReader(configPath.toFile())) {
+                Config config = gson.fromJson(reader, Config.class);
+                if (config != null) {
+                    this.soundEnable = config.soundEnable;
+                    System.out.println("Config loaded successfully: soundEnable = " + this.soundEnable);
+                }
+            } catch (IOException e) {
+                System.err.println("Failed to load config file.");
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("Config file not found, creating a new one with default values.");
+            saveConfig(); // Create the config file with default values
+        }
+    }
+
+    private void saveConfig() {
+        Gson gson = new Gson();
+        try (FileWriter writer = new FileWriter(configPath.toFile())) {
+            Config config = new Config();
+            config.soundEnable = this.soundEnable;
+            gson.toJson(config, writer);
+            System.out.println("Config file saved successfully.");
+        } catch (IOException e) {
+            System.err.println("Failed to save config file.");
+            e.printStackTrace();
+        }
+    }
+
+    private static class Config {
+        boolean soundEnable;
+
+        // Default constructor for Gson
+        Config() {
+        }
     }
 
 }
