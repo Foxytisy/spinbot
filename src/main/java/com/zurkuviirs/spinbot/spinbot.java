@@ -4,8 +4,6 @@ package com.zurkuviirs.spinbot;
 
 
 import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.sun.jdi.connect.Connector;
@@ -25,7 +23,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
