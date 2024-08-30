@@ -4,6 +4,7 @@ import com.zurkuviirs.spinbot.spinbot;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.sound.SoundEvent;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,6 +29,27 @@ public abstract class SpinbotMixin {
                 var increment = (deltaTime / 1000f) * spinbot.getInstance().spinAmount;
                 if (spinbot.getInstance().spinEnable) {
                     p.setYaw(p.getYaw() + increment);
+                }
+                if(spinbot.getInstance().spinRampEnable){
+                    var incrementRamp = (deltaTime / 1000f) * spinbot.getInstance().currentRampSpeed;
+                    if (spinbot.getInstance().spinAmount > 0 && !spinbot.getInstance().spinRampFinish) {
+                        if (spinbot.getInstance().currentRampSpeed <= spinbot.getInstance().spinAmount) {
+                            spinbot.getInstance().currentRampSpeed = (spinbot.getInstance().currentRampSpeed + (spinbot.getInstance().spinRampAmount));
+                            player.setYaw(player.getYaw() + incrementRamp);
+                        } else {
+                            spinbot.getInstance().spinRampFinish = true;
+                            player.setYaw(player.getYaw() + increment);
+                        }
+                    } else {
+                        if (spinbot.getInstance().currentRampSpeed >= spinbot.getInstance().spinAmount) {
+                            spinbot.getInstance().currentRampSpeed = (spinbot.getInstance().currentRampSpeed - (spinbot.getInstance().spinRampAmount));
+                            player.setYaw(player.getYaw() + incrementRamp);
+                        } else {
+                            spinbot.getInstance().spinRampFinish = true;
+                            player.setYaw(player.getYaw() + increment);
+                        }
+                    }
+                    //player.sendMessage(Text.literal(incrementRamp + " expected: " + increment));
                 }
                 if(spinbot.getInstance().angleSpinEnable){
                     var spinAngle = spinbot.getInstance().spinAngle;

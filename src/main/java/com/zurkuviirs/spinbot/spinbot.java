@@ -8,13 +8,17 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.sun.jdi.connect.Connector;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.CommandSource;
 import net.minecraft.sound.SoundEvent;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -31,11 +35,15 @@ public class spinbot implements ClientModInitializer {
     public boolean spinEnable = false;
     public boolean angleSpinEnable = false;
     public boolean oscSpinEnable = false;
+    public boolean spinRampEnable = false;
+    public boolean spinRampFinish = false;
     public boolean spinBack = false;
     public boolean oscSwitch = false;
     public float spinAmount = 0;
     public float spinAngle = 0;
+    public float spinRampAmount = 0;
     public float currentYaw;
+    public float currentRampSpeed = 0;
     public Identifier soundId = Identifier.of("minecraft:block.note_block.hat");
     private static spinbot instance;
     private static final String CONFIG_FILE_NAME = "config.json";
@@ -46,8 +54,6 @@ public class spinbot implements ClientModInitializer {
     }
 
     public void onInitializeClient() {
-        instance = this;
-
         instance = this;
 
         configPath = FabricLoader.getInstance().getConfigDir().resolve("config.json");
@@ -68,11 +74,23 @@ public class spinbot implements ClientModInitializer {
             return 1;
         })))));
 
+        ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spinramp")
+                .then(ClientCommandManager.argument("Ramp up Speed (Positive Float)", FloatArgumentType.floatArg())
+                        .then(ClientCommandManager.argument("Speed (Positive Float)", FloatArgumentType.floatArg()).executes(context -> {
+                            spinRampEnable = true;
+                            spinAmount = FloatArgumentType.getFloat(context, "Speed (Positive Float)") / 20.0f;
+                            currentYaw = context.getSource().getPlayer().getYaw();
+                            spinRampAmount = FloatArgumentType.getFloat(context, "Ramp up Speed (Positive Float)") / 20.0f;
+
+                            //spinAngle = FloatArgumentType.getFloat(context, "Angle (Degrees)");
+                            //if (soundEnable) {
+                            //    context.getSource().getPlayer().playSound(SoundEvent.of(soundId), 1f, 1f);
+                            //}
+                            return 1;
+                        }))))));
+
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spinsound")
-                .then(ClientCommandManager.argument("Enable / Disable", StringArgumentType.word()).suggests((context, builder) -> {
-                    // Suggest true and false options
-                    return CommandSource.suggestMatching(new String[] {"true", "false"}, builder);
-                }).executes(context -> {
+                .then(ClientCommandManager.argument("Enable / Disable", StringArgumentType.word()).suggests((context, builder) -> CommandSource.suggestMatching(new String[] {"true", "false"}, builder)).executes(context -> {
                     soundEnable = Boolean.parseBoolean(StringArgumentType.getString(context, "Enable / Disable"));
                     saveConfig();
                     return 1;
@@ -81,6 +99,7 @@ public class spinbot implements ClientModInitializer {
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spinangle")
                 .then(ClientCommandManager.argument("Angle (Degrees)", FloatArgumentType.floatArg())
                         .then(ClientCommandManager.argument("Speed (Positive Float)", FloatArgumentType.floatArg()).executes(context -> {
+                            stopSpin();
                     angleSpinEnable = true;
                     spinAmount = FloatArgumentType.getFloat(context, "Speed (Positive Float)") / 20.0f;
                     spinAngle = FloatArgumentType.getFloat(context, "Angle (Degrees)");
@@ -93,21 +112,22 @@ public class spinbot implements ClientModInitializer {
 
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spinpong")
                 .then(ClientCommandManager.argument("Angle (Symetric Degrees)", FloatArgumentType.floatArg())
-                        .then(ClientCommandManager.argument("Speed", FloatArgumentType.floatArg()).executes(context -> {
+                        .then(ClientCommandManager.argument("Speed", FloatArgumentType.floatArg())
+                                .executes(context -> {
+                                    stopSpin();
                             oscSpinEnable = true;
                             spinAmount = FloatArgumentType.getFloat(context, "Speed") / 20.0f;
                             spinAngle = Math.abs(FloatArgumentType.getFloat(context, "Angle (Symetric Degrees)"));
                             currentYaw = context.getSource().getPlayer().getYaw();
-
                             return 1;
                         }))))));
 
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, dedicated) -> dispatcher.register(literal("spinstop").executes(context -> {
-            spinEnable = false;
-            angleSpinEnable = false;
-            oscSpinEnable = false;
+            stopSpin();
             return 1;
         }))));
+
+
 
         //ClientTickEvents.END_CLIENT_TICK.register(client -> {
         //    if (spinEnable && client.player != null) {
@@ -119,35 +139,26 @@ public class spinbot implements ClientModInitializer {
 
         //For dev currently, will change to mixin stuff later
         //ClientTickEvents.END_CLIENT_TICK.register(client -> {
-        //    if (oscSpinEnable && client.player != null) {
+        //    if (spinRampEnable && client.player != null) {
         //        float increment = spinAmount / 20.0f;
-
-                //if ((currentYaw + spinAngle) > client.player.getYaw() && !spinBack){
-                //    client.player.setYaw(client.player.getYaw() + increment);
-                //} else {
-                //    spinBack = true;
-                //    client.player.setYaw(client.player.getYaw() - increment);
-                //}
-                //if (spinBack && (currentYaw - spinAngle) > client.player.getYaw()) {
-                //    spinBack = false;
-                //}
-
-               //if (spinBack && !oscSwitch) {
-               //    client.player.playSound(SoundEvent.of(soundId), 1f, 1f);
-               //    oscSwitch = true;
-               //} else if (!spinBack && oscSwitch) {
-               //    client.player.playSound(SoundEvent.of(soundId), 1f, .8f);
-               //    oscSwitch = false;
-               //}
-
-                //client.player.playSound(SoundEvent.of(soundId), 1f, 1f);
-
-                //client.player.playSound(SoundEvent.of(soundId), 1f, 0.8f);
-
-
-                //REMOVE FOR RELEASE
-                //client.player.sendMessage(Text.literal(String.valueOf(client.player.getYaw())));
-            //}
+        //        float incrementRamp = currentRampSpeed / 20.0f;
+        //        if (spinAmount > 0 ) {
+        //            if (currentRampSpeed <= spinAmount) {
+        //                currentRampSpeed = (currentRampSpeed + (spinRampAmount));
+        //                client.player.setYaw(client.player.getYaw() + incrementRamp);
+        //            } else {
+        //                client.player.setYaw(client.player.getYaw() + increment);
+        //            }
+        //        } else {
+        //            if (currentRampSpeed >= spinAmount) {
+        //                currentRampSpeed = (currentRampSpeed - (spinRampAmount));
+        //                client.player.setYaw(client.player.getYaw() + incrementRamp);
+        //            } else {
+        //                client.player.setYaw(client.player.getYaw() + increment);
+        //            }
+        //        }
+        //        client.player.sendMessage(Text.literal(String.valueOf(incrementRamp)+ "expected: " + String.valueOf(increment)));
+        //    }
         //});
 
         //ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -213,6 +224,16 @@ public class spinbot implements ClientModInitializer {
         // Default constructor for Gson
         Config() {
         }
+    }
+
+    void stopSpin() {
+        spinAngle = 0;
+        spinEnable = false;
+        angleSpinEnable = false;
+        oscSpinEnable = false;
+        spinRampEnable = false;
+        currentRampSpeed = 0;
+        spinRampFinish = false;
     }
 
 }
