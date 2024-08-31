@@ -4,7 +4,8 @@
   "package": "com.zurkuviirs.spinbot.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "client.SpinbotMixin"
+    "client.SpinbotMixin",
+    "client.SpinbotVertMixin"
   ],
   "injectors": {
     "defaultRequire": 1
