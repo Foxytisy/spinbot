@@ -63,13 +63,14 @@ public class spinbot implements ClientModInitializer {
 
         configPath = FabricLoader.getInstance().getConfigDir().resolve("config.json");
 
-        System.out.println("Config path: " + configPath.toString());
+        System.out.println("Config path: " + configPath);
 
         loadConfig();
 
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spin")
                 .then(ClientCommandManager.argument("Speed", FloatArgumentType.floatArg())
                         .then(literal("vert").executes(context -> {
+                            stopSpin();
                             vertMin = 999999999999999999999999999.9f;
                             vertMax = 999999999999999999999999999.9f;
                             spinVertEnable = true;
