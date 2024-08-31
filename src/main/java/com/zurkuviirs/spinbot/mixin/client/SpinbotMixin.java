@@ -66,26 +66,20 @@ public abstract class SpinbotMixin {
                 if (spinbot.getInstance().spinAmount > 0 && !spinbot.getInstance().spinRampFinish) {
                     if (spinbot.getInstance().currentRampSpeed <= spinbot.getInstance().spinAmount) {
                         spinbot.getInstance().currentRampSpeed = (spinbot.getInstance().currentRampSpeed + (spinbot.getInstance().spinRampAmount));
-                        player.setPitch(player.getPitch() + incrementRamp);
+                        player.setPitch(player.getPitch() - incrementRamp);
                     } else {
                         spinbot.getInstance().spinRampFinish = true;
                         player.setPitch(player.getPitch() + increment);
                     }
-                    //if(spinbot.getInstance().soundEnable) {
-                    //    if (incrementRamp % 1 == 0) {
-                    //        player.playSound(SoundEvent.of(spinbot.getInstance().soundId), .9f, incrementRamp/5);
-                    //    }
-                    //}
                 } else {
                     if (spinbot.getInstance().currentRampSpeed >= spinbot.getInstance().spinAmount) {
                         spinbot.getInstance().currentRampSpeed = (spinbot.getInstance().currentRampSpeed - (spinbot.getInstance().spinRampAmount));
-                        player.setPitch(player.getPitch() + incrementRamp);
+                        player.setPitch(player.getPitch() - incrementRamp);
                     } else {
                         spinbot.getInstance().spinRampFinish = true;
-                        player.setPitch(player.getPitch() + increment);
+                        player.setPitch(player.getPitch() - increment);
                     }
                 }
-                //player.sendMessage(Text.literal(incrementRamp + " expected: " + increment));
             }
             if (spinbot.getInstance().angleSpinEnable) {
                 var spinAngle = spinbot.getInstance().spinAngle;
@@ -118,7 +112,6 @@ public abstract class SpinbotMixin {
             if (spinbot.getInstance().oscSpinEnable) {
                 var spinAngle = spinbot.getInstance().spinAngle;
                 var currentYaw = spinbot.getInstance().currentYaw;
-                //var spinBack = spinbot.getInstance().spinBack;
 
                 if ((currentYaw + spinAngle) > player.getYaw() && !spinbot.getInstance().spinBack) {
                     player.setYaw(player.getYaw() + increment);
