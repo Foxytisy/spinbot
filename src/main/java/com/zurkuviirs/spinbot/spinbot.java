@@ -225,4 +225,42 @@ public class spinbot implements ClientModInitializer {
     }
 
     private void saveConfig() {
-        Gson gson =
+        Gson gson = new Gson();
+        try (FileWriter writer = new FileWriter(configPath.toFile())) {
+            Config config = new Config();
+            config.soundEnable = this.soundEnable;
+            gson.toJson(config, writer);
+            System.out.println("Config file saved successfully.");
+        } catch (IOException e) {
+            System.err.println("Failed to save config file.");
+            e.printStackTrace();
+        }
+    }
+
+    private static class Config {
+        boolean soundEnable;
+        Config() {
+        }
+    }
+
+    void stopSpin() {
+        if (oscSpinVertEnable || spinVertEnable || spinRampVertEnable) {
+            MinecraftClient.getInstance().player.setPitch(0);
+        }
+        spinToggle = true;
+        vertMin = 0f;
+        vertMax = 0f;
+        spinAngle = 0;
+        spinEnable = false;
+        spinVertEnable = false;
+        angleSpinEnable = false;
+        oscSpinEnable = false;
+        oscSpinVertEnable = false;
+        spinRampEnable = false;
+        spinRampVertEnable = false;
+        currentRampSpeed = 0;
+        spinRampFinish = false;
+        spinRampAmount = 0;
+    }
+
+}

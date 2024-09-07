@@ -156,4 +156,6 @@ public abstract class SpinbotMixin {
                 }
             }
         }
-        lastTime = 
+        lastTime = System.currentTimeMillis();
+    }
+}
