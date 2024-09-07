@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "spin",
 	"version": "${version}",
-	"name": "Spinbot!!1!",
+	"name": "Spinbot!!1!-nolimits",
 	"description": "Spinn",
 	"authors": [
 		"Foxytisy aka Zurkuviirs"
@@ -21,7 +21,8 @@
 		"fabricloader": ">=${loader_version}",
 		"minecraft": "~${minecraft_version}",
 		"java": ">=21",
-		"fabric-api": ">=${fabric_version}"
+		"fabric-api": ">=${fabric_version}",
+		"fabric-key-binding-api-v1": "*"
 	},
 	"mixins": [
 		"spinbot.mixins.json"
