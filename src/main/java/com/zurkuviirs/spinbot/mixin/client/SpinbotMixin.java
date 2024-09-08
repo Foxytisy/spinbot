@@ -26,7 +26,7 @@ public abstract class SpinbotMixin {
     public void renderInjected(CallbackInfo ci) {
         final var deltaTime = System.currentTimeMillis() - lastTime;
         final var p = this.player;
-        if (p != null) {
+        if (p != null && spinbot.getInstance().spinToggle) {
             var increment = (deltaTime / 1000f) * spinbot.getInstance().spinAmount;
             var incrementVert = (deltaTime / 1000f) * spinbot.getInstance().spinAmountVert;
             if (spinbot.getInstance().spinEnable) {
