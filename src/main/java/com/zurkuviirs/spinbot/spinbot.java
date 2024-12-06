@@ -94,7 +94,7 @@ public class spinbot implements ClientModInitializer {
                                 context.getSource().getPlayer().playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, 1.1f);
                             }
                             if (spinVertEnable && oscSpinVertEnable) {
-                                context.getSource().getPlayer().sendMessage(Text.literal("woah"));
+                                context.getSource().getPlayer().sendMessage(Text.literal("woah"), true);
                             }
                             return 1;
                 })).executes(context -> {
@@ -163,7 +163,7 @@ public class spinbot implements ClientModInitializer {
                                     spinAngleVert = Math.abs(FloatArgumentType.getFloat(context, "Angle (Symetric Degrees)"));
                                     currentPitch = context.getSource().getPlayer().getPitch();
                                     if (spinEnable && oscSpinVertEnable) {
-                                        context.getSource().getPlayer().sendMessage(Text.literal("woah"));
+                                        context.getSource().getPlayer().sendMessage(Text.literal("woah"), false);
                                     }
                                     return 1;
                         })).executes(context -> {
@@ -188,13 +188,13 @@ public class spinbot implements ClientModInitializer {
                 if(spinEnable || oscSpinEnable || spinRampEnable || spinVertEnable || spinRampVertEnable || angleSpinEnable || oscSpinVertEnable) {
                     if (spinToggle) {
                         spinToggle = false;
-                        client.player.sendMessage(Text.literal("Stopped Spinbot!"));
+                        client.player.sendMessage(Text.literal("Stopped Spinbot!"), true);
                         if (soundEnable) {
                             client.player.playSound(SoundEvent.of(soundId), .9f, .7f);
                         }
                     } else {
                         spinToggle = true;
-                        client.player.sendMessage(Text.literal("Resumed Spinbot!"));
+                        client.player.sendMessage(Text.literal("Resumed Spinbot!"), true);
                         if (soundEnable) {
                             client.player.playSound(SoundEvent.of(soundId), .9f, 1f);
                         }
