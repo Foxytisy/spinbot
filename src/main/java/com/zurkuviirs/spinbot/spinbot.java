@@ -4,6 +4,7 @@ package com.zurkuviirs.spinbot;
 
 
 import com.google.gson.Gson;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ClientModInitializer;
@@ -12,13 +13,12 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.command.CommandSource;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.FileReader;
@@ -55,8 +55,8 @@ public class spinbot implements ClientModInitializer {
     public float currentPitch;
     public float currentRampSpeed = 0;
 
-    public Identifier soundId = Identifier.of("minecraft:block.note_block.hat");
-    private static KeyBinding spinToggleKeybind;
+    public ResourceLocation soundId = ResourceLocation.parse("minecraft:block.note_block.hat");
+    private static KeyMapping spinToggleKeybind;
     private static spinbot instance;
     private static final String CONFIG_FILE_NAME = "config.json";
     private Path configPath;
@@ -74,9 +74,9 @@ public class spinbot implements ClientModInitializer {
 
         loadConfig();
 
-        spinToggleKeybind = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+        spinToggleKeybind = KeyBindingHelper.registerKeyBinding(new KeyMapping(
                 "Start/Stop",
-                InputUtil.Type.KEYSYM,
+                InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_V,
                 "Spinbot"
         ));
@@ -89,18 +89,18 @@ public class spinbot implements ClientModInitializer {
                             vertMax = 999999999999999999999999999.9f;
                             spinVertEnable = true;
                             spinAmountVert = FloatArgumentType.getFloat(context, "Speed") / 20.0f;
-                            currentPitch = context.getSource().getPlayer().getPitch();
+                            currentPitch = context.getSource().getPlayer().getXRot();
                             if (spinbot.getInstance().soundEnable) {
-                                context.getSource().getPlayer().playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, 1.1f);
+                                context.getSource().getPlayer().playSound(SoundEvent.createVariableRangeEvent(spinbot.getInstance().soundId), 1f, 1.1f);
                             }
                             if (spinVertEnable && oscSpinVertEnable) {
-                                context.getSource().getPlayer().sendMessage(Text.literal("woah"), true);
+                                context.getSource().getPlayer().displayClientMessage(Component.literal("woah"), true);
                             }
                             return 1;
                 })).executes(context -> {
                     spinEnable = true;
                     spinAmount = FloatArgumentType.getFloat(context, "Speed") / 20.0f;
-                    context.getSource().getPlayer().playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, 1f);
+                    context.getSource().getPlayer().playSound(SoundEvent.createVariableRangeEvent(spinbot.getInstance().soundId), 1f, 1f);
             return 1;
         })))));
 
@@ -112,23 +112,23 @@ public class spinbot implements ClientModInitializer {
                             vertMax = 999999999999999999999999999.9f;
                             spinRampVertEnable = true;
                             spinAmount = FloatArgumentType.getFloat(context, "Speed (Positive Float)") / 20.0f;
-                            currentYaw = context.getSource().getPlayer().getYaw();
+                            currentYaw = context.getSource().getPlayer().getYRot();
                             spinRampAmount = FloatArgumentType.getFloat(context, "Ramp up Speed (Positive Float)") / 20.0f;
                             if (soundEnable) {
-                                context.getSource().getPlayer().playSound(SoundEvent.of(soundId), 1f, 1.1f);
+                                context.getSource().getPlayer().playSound(SoundEvent.createVariableRangeEvent(soundId), 1f, 1.1f);
                             }
                             return 1;
                         })).executes(context -> {
                             stopSpin();
                             spinRampEnable = true;
                             spinAmount = FloatArgumentType.getFloat(context, "Speed (Positive Float)") / 20.0f;
-                            currentYaw = context.getSource().getPlayer().getYaw();
+                            currentYaw = context.getSource().getPlayer().getYRot();
                             spinRampAmount = FloatArgumentType.getFloat(context, "Ramp up Speed (Positive Float)") / 20.0f;
                             return 1;
                                 }))))));
 
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> dispatcher.register(literal("spinsound")
-                .then(ClientCommandManager.argument("Enable / Disable", StringArgumentType.word()).suggests((context, builder) -> CommandSource.suggestMatching(new String[] {"true", "false"}, builder)).executes(context -> {
+                .then(ClientCommandManager.argument("Enable / Disable", StringArgumentType.word()).suggests((context, builder) -> SharedSuggestionProvider.suggest(new String[] {"true", "false"}, builder)).executes(context -> {
                     soundEnable = Boolean.parseBoolean(StringArgumentType.getString(context, "Enable / Disable"));
                     saveConfig();
                     return 1;
@@ -141,9 +141,9 @@ public class spinbot implements ClientModInitializer {
                     angleSpinEnable = true;
                     spinAmount = FloatArgumentType.getFloat(context, "Speed (Positive Float)") / 20.0f;
                     spinAngle = FloatArgumentType.getFloat(context, "Angle (Degrees)");
-                    currentYaw = context.getSource().getPlayer().getYaw();
+                    currentYaw = context.getSource().getPlayer().getYRot();
                     if (soundEnable) {
-                        context.getSource().getPlayer().playSound(SoundEvent.of(soundId), 1f, 1f);
+                        context.getSource().getPlayer().playSound(SoundEvent.createVariableRangeEvent(soundId), 1f, 1f);
                     }
                     return 1;
                 }))))));
@@ -161,9 +161,9 @@ public class spinbot implements ClientModInitializer {
                                     oscSpinVertEnable = true;
                                     spinAmountVert = FloatArgumentType.getFloat(context, "Speed") / 20.0f;
                                     spinAngleVert = Math.abs(FloatArgumentType.getFloat(context, "Angle (Symetric Degrees)"));
-                                    currentPitch = context.getSource().getPlayer().getPitch();
+                                    currentPitch = context.getSource().getPlayer().getXRot();
                                     if (spinEnable && oscSpinVertEnable) {
-                                        context.getSource().getPlayer().sendMessage(Text.literal("woah"), false);
+                                        context.getSource().getPlayer().displayClientMessage(Component.literal("woah"), false);
                                     }
                                     return 1;
                         })).executes(context -> {
@@ -171,32 +171,32 @@ public class spinbot implements ClientModInitializer {
                                     oscSpinEnable = true;
                                     spinAmount = FloatArgumentType.getFloat(context, "Speed") / 20.0f;
                                     spinAngle = Math.abs(FloatArgumentType.getFloat(context, "Angle (Symetric Degrees)"));
-                                    currentYaw = context.getSource().getPlayer().getYaw();
+                                    currentYaw = context.getSource().getPlayer().getYRot();
                                     return 1;
                         }))))));
 
         ClientCommandRegistrationCallback.EVENT.register(((dispatcher, dedicated) -> dispatcher.register(literal("spinstop").executes(context -> {
             stopSpin();
             if (soundEnable) {
-                context.getSource().getPlayer().playSound(SoundEvent.of(soundId), .9f, .7f);
+                context.getSource().getPlayer().playSound(SoundEvent.createVariableRangeEvent(soundId), .9f, .7f);
             }
             return 1;
         }))));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (spinToggleKeybind.wasPressed()) {
+            while (spinToggleKeybind.consumeClick()) {
                 if(spinEnable || oscSpinEnable || spinRampEnable || spinVertEnable || spinRampVertEnable || angleSpinEnable || oscSpinVertEnable) {
                     if (spinToggle) {
                         spinToggle = false;
-                        client.player.sendMessage(Text.literal("Stopped Spinbot!"), true);
+                        client.field_1724.sendMessage(Component.literal("Stopped Spinbot!"), true);
                         if (soundEnable) {
-                            client.player.playSound(SoundEvent.of(soundId), .9f, .7f);
+                            client.field_1724.method_5783(SoundEvent.createVariableRangeEvent(soundId), .9f, .7f);
                         }
                     } else {
                         spinToggle = true;
-                        client.player.sendMessage(Text.literal("Resumed Spinbot!"), true);
+                        client.field_1724.sendMessage(Component.literal("Resumed Spinbot!"), true);
                         if (soundEnable) {
-                            client.player.playSound(SoundEvent.of(soundId), .9f, 1f);
+                            client.field_1724.method_5783(SoundEvent.createVariableRangeEvent(soundId), .9f, 1f);
                         }
                     }
                 }
@@ -245,7 +245,7 @@ public class spinbot implements ClientModInitializer {
 
     void stopSpin() {
         if (oscSpinVertEnable || spinVertEnable || spinRampVertEnable) {
-            MinecraftClient.getInstance().player.setPitch(0);
+            Minecraft.getInstance().player.setXRot(0);
         }
         spinToggle = true;
         vertMin = 0f;

@@ -1,11 +1,11 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.zurkuviirs.spinbot.mixin",
+  "package": "com.zurkuviirs.spinbot.mixin.client",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "client.SpinbotMixin",
-    "client.SpinbotVertMixin"
+    "SpinbotMixin",
+    "SpinbotVertMixin"
   ],
   "injectors": {
     "defaultRequire": 1

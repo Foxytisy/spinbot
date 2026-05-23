@@ -1,9 +1,9 @@
 package com.zurkuviirs.spinbot.mixin.client;
 
 import com.zurkuviirs.spinbot.spinbot;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.sound.SoundEvent;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.sounds.SoundEvent;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -12,17 +12,23 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(MinecraftClient.class)
+// TODO(Ravel): can not resolve target class MinecraftClient
+// TODO(Ravel): can not resolve target class MinecraftClient
+@Mixin(Minecraft.class)
 public abstract class SpinbotMixin {
 
+    // TODO(Ravel): Could not determine a single target
+// TODO(Ravel): Could not determine a single target
     @Shadow
     @Nullable
-    public ClientPlayerEntity player;
+    public LocalPlayer player;
 
     @Unique
     private long lastTime = System.currentTimeMillis();
 
-    @Inject(method = "render", at = @At("TAIL"))
+    // TODO(Ravel): no target class
+// TODO(Ravel): no target class
+    @Inject(method = "runTick", at = @At("TAIL"))
     public void renderInjected(CallbackInfo ci) {
         final var deltaTime = System.currentTimeMillis() - lastTime;
         final var p = this.player;
@@ -30,20 +36,20 @@ public abstract class SpinbotMixin {
             var increment = (deltaTime / 1000f) * spinbot.getInstance().spinAmount;
             var incrementVert = (deltaTime / 1000f) * spinbot.getInstance().spinAmountVert;
             if (spinbot.getInstance().spinEnable) {
-                p.setYaw(p.getYaw() + increment);
+                p.setYRot(p.getYRot() + increment);
             }
             if (spinbot.getInstance().spinVertEnable) {
-                p.setPitch(p.getPitch() - incrementVert);
+                p.setXRot(p.getXRot() - incrementVert);
             }
             if (spinbot.getInstance().spinRampEnable) {
                 var incrementRamp = (deltaTime / 1000f) * spinbot.getInstance().currentRampSpeed;
                 if (spinbot.getInstance().spinAmount > 0 && !spinbot.getInstance().spinRampFinish) {
                     if (spinbot.getInstance().currentRampSpeed <= spinbot.getInstance().spinAmount) {
                         spinbot.getInstance().currentRampSpeed = (spinbot.getInstance().currentRampSpeed + (spinbot.getInstance().spinRampAmount));
-                        player.setYaw(player.getYaw() + incrementRamp);
+                        player.setYRot(player.getYRot() + incrementRamp);
                     } else {
                         spinbot.getInstance().spinRampFinish = true;
-                        player.setYaw(player.getYaw() + increment);
+                        player.setYRot(player.getYRot() + increment);
                     }
                     //if(spinbot.getInstance().soundEnable) {
                     //    if (incrementRamp % 1 == 0) {
@@ -53,10 +59,10 @@ public abstract class SpinbotMixin {
                 } else {
                     if (spinbot.getInstance().currentRampSpeed >= spinbot.getInstance().spinAmount) {
                         spinbot.getInstance().currentRampSpeed = (spinbot.getInstance().currentRampSpeed - (spinbot.getInstance().spinRampAmount));
-                        player.setYaw(player.getYaw() + incrementRamp);
+                        player.setYRot(player.getYRot() + incrementRamp);
                     } else {
                         spinbot.getInstance().spinRampFinish = true;
-                        player.setYaw(player.getYaw() + increment);
+                        player.setYRot(player.getYRot() + increment);
                     }
                 }
                 //player.sendMessage(Text.literal(incrementRamp + " expected: " + increment));
@@ -66,18 +72,18 @@ public abstract class SpinbotMixin {
                 if (spinbot.getInstance().spinAmount > 0 && !spinbot.getInstance().spinRampFinish) {
                     if (spinbot.getInstance().currentRampSpeed <= spinbot.getInstance().spinAmount) {
                         spinbot.getInstance().currentRampSpeed = (spinbot.getInstance().currentRampSpeed + (spinbot.getInstance().spinRampAmount));
-                        player.setPitch(player.getPitch() - incrementRamp);
+                        player.setXRot(player.getXRot() - incrementRamp);
                     } else {
                         spinbot.getInstance().spinRampFinish = true;
-                        player.setPitch(player.getPitch() + increment);
+                        player.setXRot(player.getXRot() + increment);
                     }
                 } else {
                     if (spinbot.getInstance().currentRampSpeed >= spinbot.getInstance().spinAmount) {
                         spinbot.getInstance().currentRampSpeed = (spinbot.getInstance().currentRampSpeed - (spinbot.getInstance().spinRampAmount));
-                        player.setPitch(player.getPitch() - incrementRamp);
+                        player.setXRot(player.getXRot() - incrementRamp);
                     } else {
                         spinbot.getInstance().spinRampFinish = true;
-                        player.setPitch(player.getPitch() - increment);
+                        player.setXRot(player.getXRot() - increment);
                     }
                 }
             }
@@ -86,25 +92,25 @@ public abstract class SpinbotMixin {
                 var currentYaw = spinbot.getInstance().currentYaw;
 
                 if (spinAngle < 0) {
-                    if ((currentYaw + spinAngle < p.getYaw())) {
-                        p.setYaw(p.getYaw() - increment);
+                    if ((currentYaw + spinAngle < p.getYRot())) {
+                        p.setYRot(p.getYRot() - increment);
                         //p.sendMessage(Text.literal(String.valueOf(currentYaw)));
 
                     } else {
                         spinbot.getInstance().angleSpinEnable = false;
                         if (spinbot.getInstance().soundEnable) {
-                            player.playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, 0.8f);
+                            player.playSound(SoundEvent.createVariableRangeEvent(spinbot.getInstance().soundId), 1f, 0.8f);
                         }
                     }
                 } else {
-                    if ((currentYaw + spinAngle > p.getYaw())) {
-                        p.setYaw(p.getYaw() + increment);
+                    if ((currentYaw + spinAngle > p.getYRot())) {
+                        p.setYRot(p.getYRot() + increment);
                         //p.sendMessage(Text.literal(String.valueOf(currentYaw)));
 
                     } else {
                         spinbot.getInstance().angleSpinEnable = false;
                         if (spinbot.getInstance().soundEnable) {
-                            player.playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, 0.8f);
+                            player.playSound(SoundEvent.createVariableRangeEvent(spinbot.getInstance().soundId), 1f, 0.8f);
                         }
                     }
                 }
@@ -113,21 +119,21 @@ public abstract class SpinbotMixin {
                 var spinAngle = spinbot.getInstance().spinAngle;
                 var currentYaw = spinbot.getInstance().currentYaw;
 
-                if ((currentYaw + spinAngle) > player.getYaw() && !spinbot.getInstance().spinBack) {
-                    player.setYaw(player.getYaw() + increment);
+                if ((currentYaw + spinAngle) > player.getYRot() && !spinbot.getInstance().spinBack) {
+                    player.setYRot(player.getYRot() + increment);
                 } else {
                     spinbot.getInstance().spinBack = true;
-                    player.setYaw(player.getYaw() - increment);
+                    player.setYRot(player.getYRot() - increment);
                 }
-                if (spinbot.getInstance().spinBack && (currentYaw - spinAngle) > player.getYaw()) {
+                if (spinbot.getInstance().spinBack && (currentYaw - spinAngle) > player.getYRot()) {
                     spinbot.getInstance().spinBack = false;
                 }
                 if (spinbot.getInstance().soundEnable) {
                     if (spinbot.getInstance().spinBack && !spinbot.getInstance().oscSwitch) {
-                        player.playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, 1f);
+                        player.playSound(SoundEvent.createVariableRangeEvent(spinbot.getInstance().soundId), 1f, 1f);
                         spinbot.getInstance().oscSwitch = true;
                     } else if (!spinbot.getInstance().spinBack && spinbot.getInstance().oscSwitch) {
-                        player.playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, .8f);
+                        player.playSound(SoundEvent.createVariableRangeEvent(spinbot.getInstance().soundId), 1f, .8f);
                         spinbot.getInstance().oscSwitch = false;
                     }
                 }
@@ -136,21 +142,21 @@ public abstract class SpinbotMixin {
                 var spinAngleVert = spinbot.getInstance().spinAngleVert;
                 var currentPitch = spinbot.getInstance().currentPitch;
 
-                if ((currentPitch + spinAngleVert) > player.getPitch() && !spinbot.getInstance().spinBack) {
-                    player.setPitch(player.getPitch() + incrementVert);
+                if ((currentPitch + spinAngleVert) > player.getXRot() && !spinbot.getInstance().spinBack) {
+                    player.setXRot(player.getXRot() + incrementVert);
                 } else {
                     spinbot.getInstance().spinBack = true;
-                    player.setPitch(player.getPitch() - incrementVert);
+                    player.setXRot(player.getXRot() - incrementVert);
                 }
-                if (spinbot.getInstance().spinBack && (currentPitch - spinAngleVert) > player.getPitch()) {
+                if (spinbot.getInstance().spinBack && (currentPitch - spinAngleVert) > player.getXRot()) {
                     spinbot.getInstance().spinBack = false;
                 }
                 if (spinbot.getInstance().soundEnable) {
                     if (spinbot.getInstance().spinBack && !spinbot.getInstance().oscSwitch) {
-                        player.playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, 1.1f);
+                        player.playSound(SoundEvent.createVariableRangeEvent(spinbot.getInstance().soundId), 1f, 1.1f);
                         spinbot.getInstance().oscSwitch = true;
                     } else if (!spinbot.getInstance().spinBack && spinbot.getInstance().oscSwitch) {
-                        player.playSound(SoundEvent.of(spinbot.getInstance().soundId), 1f, .9f);
+                        player.playSound(SoundEvent.createVariableRangeEvent(spinbot.getInstance().soundId), 1f, .9f);
                         spinbot.getInstance().oscSwitch = false;
                     }
                 }
