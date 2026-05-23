@@ -17,8 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public abstract class SpinbotMixin {
 
-    // TODO(Ravel): Could not determine a single target
-// TODO(Ravel): Could not determine a single target
     @Shadow
     @Nullable
     public LocalPlayer player;
@@ -26,8 +24,6 @@ public abstract class SpinbotMixin {
     @Unique
     private long lastTime = System.currentTimeMillis();
 
-    // TODO(Ravel): no target class
-// TODO(Ravel): no target class
     @Inject(method = "runTick", at = @At("TAIL"))
     public void renderInjected(CallbackInfo ci) {
         final var deltaTime = System.currentTimeMillis() - lastTime;
